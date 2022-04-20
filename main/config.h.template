@@ -9,5 +9,6 @@ static const char password[] = "WIFI PASSWORD HERE"; //WiFi password
 
 static const char mqtt_server[] = "192.168.0.155"; //IP of MQTT broker- CHANGE THIS TO MATCH YOUR IP
 static const int mqtt_port = 1883;
-static const char mqtt_topic[] = "ha/buttons/laundry"; //Topic of button
+static const char mqtt_topic[] = "ha/buttons/laundry"; //Topic of button to publish on
+static const char mqtt_sub_topic[] = "ha/buttons/laundry/set"; //Topic of button to subscribe on
 #endif
