@@ -10,6 +10,9 @@ unsigned long debounceDelay = 50;
 
 bool currentState = false;
 
+int pirStat = 0;
+bool motionState = false;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -28,11 +31,11 @@ void callback(char* topic, byte* message, unsigned int length) {
   if (String(topic) == mqtt_sub_topic) {
     Serial.print("Changing output to ");
     if (messageTemp == "ON") {
-      Serial.println("ON");
+      Serial.println("Button ON");
       currentState = true;
       digitalWrite(led_pin, HIGH);
     } else if (messageTemp == "OFF") {
-      Serial.println("OFF");
+      Serial.println("Button OFF");
       currentState = false;
       digitalWrite(led_pin, LOW);
     }
@@ -55,7 +58,7 @@ void setup() {
   //Initialize MQTT
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
-  client.publish(mqtt_topic, "OFF");
+  client.publish(mqtt_button_topic, "OFF");
 
   //Initialize pins
   pinMode(led_pin, OUTPUT);
@@ -65,7 +68,7 @@ void setup() {
 void toggle() {
   currentState = !currentState;
   Serial.println(currentState ? "ON" : "OFF");
-  client.publish(mqtt_topic, currentState ? "ON" : "OFF");
+  client.publish(mqtt_button_topic, currentState ? "ON" : "OFF");
 }
 
 void reconnect() {
@@ -106,4 +109,15 @@ void loop() {
     }
   }
   lastButtonState = reading;
+
+  pirStat = digitalRead(motion_pin);
+  if (pirStat == HIGH && !motionState) {
+    Serial.println("Motion ON");
+    client.publish(mqtt_motion_topic, "ON");
+    motionState = true;
+  } else if (pirStat == LOW && motionState) {
+    Serial.println("Motion OFF");
+    client.publish(mqtt_motion_topic, "OFF");
+    motionState = false;
+  }
 }
