@@ -32,7 +32,7 @@ void setup() {
   client.publish(mqtt_topic, "OFF");
 
   //Initialize pins
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(led_pin, OUTPUT);
   pinMode(button_pin, INPUT);
 }
 
