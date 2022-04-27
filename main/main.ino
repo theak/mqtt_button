@@ -6,7 +6,7 @@
 int buttonState = 0;
 int lastButtonState = 0;
 unsigned long lastDebounceTime = 0;
-unsigned long debounceDelay = 50;
+unsigned long debounceDelay = 100;
 
 bool currentState = false;
 
@@ -33,11 +33,11 @@ void callback(char* topic, byte* message, unsigned int length) {
     if (messageTemp == "ON") {
       Serial.println("Button ON");
       currentState = true;
-      digitalWrite(led_pin, HIGH);
+      digitalWrite(LED_BUILTIN, HIGH);
     } else if (messageTemp == "OFF") {
       Serial.println("Button OFF");
       currentState = false;
-      digitalWrite(led_pin, LOW);
+      digitalWrite(LED_BUILTIN, LOW);
     }
   }
 }
@@ -59,16 +59,20 @@ void setup() {
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
   client.publish(mqtt_button_topic, "OFF");
-
+  
   //Initialize pins
-  pinMode(led_pin, OUTPUT);
-  pinMode(button_pin, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(button_pin, INPUT_PULLUP);
+  pinMode(motion_pin, INPUT);
 }
 
 void toggle() {
   currentState = !currentState;
   Serial.println(currentState ? "ON" : "OFF");
   client.publish(mqtt_button_topic, currentState ? "ON" : "OFF");
+  if (currentState) digitalWrite(LED_BUILTIN, HIGH);
+  if (!currentState) digitalWrite(LED_BUILTIN, LOW);
+    
 }
 
 void reconnect() {
@@ -76,10 +80,11 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ESP8266Client")) {
+    if (client.connect("LaundryClient")) {
       Serial.println("connected");
       // Subscribe
-      client.subscribe("esp32/output");
+      client.subscribe(mqtt_sub_topic);
+      
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -96,10 +101,10 @@ void loop() {
   }
   client.loop();
   int reading = digitalRead(button_pin);
+  
   if (reading != lastButtonState) {
     lastDebounceTime = millis();
   }
-  
   if ((millis() - lastDebounceTime) > debounceDelay) {
     if (reading != buttonState) {
       buttonState = reading;
