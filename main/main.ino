@@ -62,7 +62,7 @@ void setup() {
   
   //Initialize pins
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(button_pin, INPUT_PULLUP);
+  pinMode(button_pin, INPUT);
   pinMode(motion_pin, INPUT);
 }
 
@@ -72,6 +72,8 @@ void toggle() {
   client.publish(mqtt_button_topic, currentState ? "ON" : "OFF");
   if (currentState) digitalWrite(LED_BUILTIN, HIGH);
   if (!currentState) digitalWrite(LED_BUILTIN, LOW);
+  delay(500);
+  client.publish(mqtt_button_topic, currentState ? "ON" : "OFF");
     
 }
 
@@ -80,7 +82,7 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("LaundryClient")) {
+    if (client.connect(mqtt_client_name)) {
       Serial.println("connected");
       // Subscribe
       client.subscribe(mqtt_sub_topic);
@@ -113,6 +115,7 @@ void loop() {
       }
     }
   }
+  
   lastButtonState = reading;
 
   pirStat = digitalRead(motion_pin);
